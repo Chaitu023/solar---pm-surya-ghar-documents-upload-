@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar Inverter Register</title>
+<style>
+:root{--green:#147d4b;--dark:#12352a;--bg:#f3f7f4;--line:#dce7df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17251d}
+header{background:linear-gradient(135deg,#0c5f3c,#23965d);color:white;padding:22px 18px 24px}
+header small{opacity:.85;letter-spacing:.08em;text-transform:uppercase;font-weight:700}h1{font-size:24px;margin:5px 0}header p{margin:0;opacity:.9;font-size:14px}
+main{max-width:720px;margin:auto;padding:16px 13px 40px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:14px;box-shadow:0 4px 15px #173c2510}
+h2{font-size:17px;margin:0 0 14px;display:flex;align-items:center;gap:9px}.num{background:#e0f3e7;color:var(--green);border-radius:8px;padding:4px 8px;font-size:13px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;color:#344b3d}
+input,textarea{width:100%;padding:12px;border:1px solid #cbd9ce;border-radius:10px;background:#fff;font:inherit;font-size:15px;color:#17251d}
+textarea{min-height:70px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:10px;padding:12px 14px;font:inherit;font-weight:700;cursor:pointer}
+.primary{background:var(--green);color:#fff;width:100%;padding:15px}.secondary{background:#e7f5ec;color:#12633d}.outline{background:white;border:1px solid #cbd9ce;color:#214b34}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.actions button{flex:1;min-width:125px}
+.hint{font-size:12px;color:#687b6e;margin:7px 0 0;line-height:1.45}.status{font-size:13px;color:#17613c;margin-top:8px;white-space:pre-wrap}
+.serialrow{display:flex;gap:8px;margin-top:8px}.serialrow input{flex:1;min-width:0}.serialrow button{white-space:nowrap}
+.pill{display:inline-block;background:#edf5ef;border-radius:99px;padding:5px 9px;font-size:12px;color:#245d3c}
+#serialList{padding:0;list-style:none;margin:12px 0 0}#serialList li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:9px;margin-top:7px;font-size:14px;overflow-wrap:anywhere}
+.remove{background:#fff0ed;color:#a33d2c;padding:5px 9px;font-size:12px}
+#preview{display:none;width:100%;max-height:240px;object-fit:cover;border-radius:10px;margin-top:10px}
+#scanner{display:none;width:100%;border-radius:12px;margin-top:10px;background:#111}
+.records-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.record{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:9px}.record strong{display:block}.record small{color:#66786c}
+.empty{color:#7b887f;font-size:13px;padding:5px 0}.danger{background:#fff0ed;color:#9a3528}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.card{padding:14px}header{padding:20px 15px}}
+</style>
+
+<style id="pksolar-glass-ui">
+:root{--green:#19e6b0;--dark:#061b3b;--bg:#06152f;--line:rgba(157,218,255,.25)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 10% 5%,#164e88 0,transparent 35%),radial-gradient(ellipse at 90% 35%,#064f69 0,transparent 35%),linear-gradient(145deg,#06132d,#0a2d54 55%,#07182e);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#f4fbff;min-height:100vh}
+header{background:linear-gradient(120deg,rgba(11,44,91,.92),rgba(0,147,157,.52));border-bottom:1px solid rgba(180,235,255,.28);box-shadow:0 12px 40px #00102655;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);color:white;padding:24px 18px 26px}
+header small{color:#8df8dd;letter-spacing:.13em;text-transform:uppercase;font-weight:800;font-size:11px}
+header h1{font-size:27px;letter-spacing:-.04em;margin:7px 0 6px;font-weight:850}
+header p{margin:0;opacity:.94;font-size:14px;line-height:1.5}
+header .actions{margin-top:15px}
+header .actions button{border:1px solid #b9f8ff66!important;border-radius:13px!important;box-shadow:0 5px 18px #00152c55}
+main{max-width:760px;margin:auto;padding:17px 13px 42px}
+.card{background:linear-gradient(135deg,rgba(38,112,171,.35),rgba(8,35,72,.64));border:1px solid rgba(176,232,255,.3);border-radius:21px;padding:18px;margin-bottom:15px;box-shadow:0 12px 32px #00102655,inset 0 1px 0 #ffffff15;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+h2{font-size:17px;margin:0 0 14px;display:flex;align-items:center;gap:10px;letter-spacing:-.02em}
+.num{background:linear-gradient(145deg,#15e3bd,#1586ff);color:#fff;border:1px solid #c5ffff66;border-radius:11px;padding:5px 9px;font-size:13px;box-shadow:0 4px 14px #008dff44}
+label{display:block;font-size:12px;font-weight:750;margin:12px 0 6px;color:#c5e9ff}
+input,textarea{width:100%;padding:12px 13px;border:1px solid rgba(172,223,255,.3);border-radius:12px;background:rgba(3,19,44,.46);font:inherit;font-size:14px;color:#f6fcff;outline:none;box-shadow:inset 0 1px 5px #00132a55}
+input::placeholder,textarea::placeholder{color:#9db8d0}input:focus,textarea:focus{border-color:#48e8d0;box-shadow:0 0 0 3px #32dfc01c}input[type=file]{padding:10px}
+textarea{min-height:76px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:1px solid #ffffff28;border-radius:12px;padding:12px 14px;font:inherit;font-weight:750;cursor:pointer;transition:transform .15s,filter .15s;box-shadow:0 6px 15px #00132c38}
+button:active{transform:scale(.98)}.primary{background:linear-gradient(100deg,#078dff,#14d6c0);color:white;width:100%;padding:15px;font-size:15px}.secondary{background:linear-gradient(120deg,#087fca,#0bbda8);color:white}.outline{background:rgba(130,201,255,.12);border:1px solid #b5e6ff50;color:#eaf8ff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.actions button{flex:1;min-width:125px}
+.hint{font-size:12px;color:#a8c7e1;margin:8px 0 0;line-height:1.55}.status{font-size:13px;color:#7ef5d8;margin-top:8px;white-space:pre-wrap}
+.serialrow{display:flex;gap:8px;margin-top:8px}.serialrow input{flex:1;min-width:0}.serialrow button{white-space:nowrap}
+.pill{display:inline-block;background:#0bbd9b25;border:1px solid #53f1ca55;border-radius:99px;padding:5px 9px;font-size:12px;color:#a8ffe8}
+#serialList,#panelSerialList{padding:0;list-style:none;margin:12px 0 0}
+#serialList li,#panelSerialList li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px;border:1px solid #b8e5ff27;background:#061a38a8;border-radius:11px;margin-top:7px;font-size:13px;overflow-wrap:anywhere}
+.remove{background:linear-gradient(120deg,#b82f52,#f05a5a);color:white;padding:6px 10px;font-size:12px}
+#preview{display:none;width:100%;max-height:240px;object-fit:cover;border-radius:14px;margin-top:10px;border:1px solid #b5e6ff55}
+#scanner{display:none;width:100%;border-radius:14px;margin-top:10px;background:#020817;border:1px solid #8ceaff66}
+#panelScanner{border:1px solid #8ceaff66}
+.records-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.record{border:1px solid #a6e5ff35;background:linear-gradient(120deg,#12446b88,#061b3bcc);border-radius:15px;padding:13px;margin-top:10px;box-shadow:inset 0 1px #ffffff10}.record strong{display:block;color:#fff}.record small{color:#9bc4df}
+.empty{color:#9db8d0;font-size:13px;padding:5px 0}.danger{background:linear-gradient(120deg,#79294b,#bd3d4c);color:white}
+#liveCoords{background:rgba(0,205,166,.12)!important;border:1px solid #42edce55;color:#dffef7}
+a{color:#7cebd9}
+@media(max-width:440px){.grid{grid-template-columns:1fr}.card{padding:15px}header{padding:22px 15px}header h1{font-size:24px}}
+</style>
+
+
+<style id="pksolar-black-gold-glass">
+:root{--gold:#ffd900;--gold2:#ffb900;--glass:rgba(18,16,5,.68)}
+html,body{background:#030303!important;color:#fff!important}
+body{background:
+ radial-gradient(ellipse at 50% -10%,rgba(255,210,0,.14),transparent 42%),
+ radial-gradient(ellipse at 0% 55%,rgba(255,190,0,.055),transparent 30%),
+ #030303!important;color:#fff!important}
+header{background:linear-gradient(135deg,rgba(15,14,7,.94),rgba(5,5,5,.88))!important;border:1px solid rgba(255,221,0,.88)!important;border-radius:25px!important;box-shadow:0 0 7px #ffe600,0 0 24px #ffcf0038,inset 0 1px 0 #fff7b744!important}
+header small{color:#ffe34a!important}
+header h1{color:#fff!important;text-shadow:0 0 16px #ffdc0044}
+header h1 span,header strong{color:#ffe000!important}
+header p{color:#f1edda!important}
+.card,.record{background:linear-gradient(140deg,rgba(31,28,12,.78),rgba(5,5,5,.88))!important;border:1px solid rgba(255,220,0,.72)!important;border-radius:20px!important;box-shadow:0 0 5px #ffe00066,0 0 18px #ffcf001c,inset 0 1px 0 #fff4b72b!important;backdrop-filter:blur(22px)!important;-webkit-backdrop-filter:blur(22px)!important}
+h2{color:#fff!important}
+.num{color:#111!important;background:linear-gradient(145deg,#fff16a,#ffbe00)!important;border:1px solid #fff4a8!important;box-shadow:0 0 13px #ffdc0066!important;border-radius:50%!important;min-width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center}
+label{color:#f4e9b4!important}
+input,textarea{background:rgba(28,28,28,.78)!important;color:#fff!important;border:1px solid rgba(255,255,255,.28)!important;border-radius:11px!important;box-shadow:inset 0 2px 7px #000!important}
+input::placeholder,textarea::placeholder{color:#aaa!important}
+input:focus,textarea:focus{border-color:#ffe000!important;box-shadow:0 0 0 2px #ffe00030,0 0 12px #ffdb0033!important}
+button{border:1px solid #ffe0008c!important;border-radius:13px!important;background:linear-gradient(140deg,rgba(255,220,0,.12),rgba(20,18,8,.86))!important;color:#fff!important;box-shadow:0 0 6px #ffdc002e,inset 0 1px 0 #fff5b52b!important}
+button.primary{background:linear-gradient(105deg,#ffbd00,#ffea00)!important;color:#090909!important;border-color:#fff19a!important;font-weight:850!important;box-shadow:0 0 9px #ffdb00a6,0 0 25px #ffcf0038!important}
+button.secondary{background:linear-gradient(120deg,#7c5a00,#e8bf00)!important;color:#fff!important;border-color:#ffeb55!important}
+button.outline{background:rgba(255,255,255,.055)!important;border-color:#ffdf0080!important;color:#fff!important}
+button.danger,button.remove{background:linear-gradient(120deg,#5d1515,#a32828)!important;border-color:#ff6c6c88!important;color:white!important}
+.actions button{box-shadow:0 0 9px #ffdb001c,inset 0 1px 0 #fff5b51a!important}
+.hint,.record small,.empty{color:#b8b4a1!important}
+.status{color:#ffe66d!important}
+.pill{background:#ffdb0018!important;border:1px solid #ffdf00a0!important;color:#ffed77!important}
+#liveCoords{background:rgba(255,215,0,.07)!important;border:1px solid #ffdf0080!important;color:#fff7cb!important}
+#liveCoords a,a{color:#ffe35b}
+#serialList li,#panelSerialList li{background:rgba(255,255,255,.045)!important;border:1px solid #ffe00055!important;border-radius:11px!important;color:#fff!important}
+#preview,#scanner,#panelScanner{border:1px solid #ffe000b3!important;box-shadow:0 0 12px #ffdb0030!important;border-radius:14px!important}
+#shareStatus{color:#ffe66d!important}
+::selection{background:#ffe00055}
+@media(max-width:440px){header{margin:8px!important;padding:21px 15px!important}main{padding:12px 9px 32px!important}.card{padding:15px!important}}
+</style>
+
+
+<style id="pksolar-company-info-style">
+.pksolar-top-heading{background:linear-gradient(135deg,#080808,#171504)!important;border:1px solid #ffdf00!important;border-radius:22px!important;box-shadow:0 0 8px #ffdf0055!important}
+.pksolar-top-heading small{display:block;color:#ffe66b!important;letter-spacing:.04em;text-transform:none;font-size:12px;font-weight:750}
+.pksolar-top-heading h1{font-size:clamp(22px,5vw,30px)!important;color:#fff!important;margin:10px 0!important}
+.pksolar-top-heading p{max-width:650px;color:#ddd8c1!important;line-height:1.55}
+.pksolar-company-info p{font-size:14px;line-height:1.65;color:#f6f1d8;margin:9px 0;overflow-wrap:anywhere}
+.pksolar-company-info strong{color:#fff}
+.pksolar-info-label{font-weight:800;color:#ffe66b}
+.pksolar-company-info a{color:#ffe45c;text-decoration:none;border-bottom:1px solid #ffe45c66}
+</style>
+
+
+<style id="pksolar-reference-exact-theme">
+:root{color-scheme:dark;--gold:#ffe000}
+html,body{background:#030303!important;color:#f8f8f8!important}
+body{background:radial-gradient(ellipse at 50% 0%,#292000 0,transparent 37%),#030303!important;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;padding-bottom:76px}
+header.pksolar-top-heading{background:#050505!important;border:1px solid #ffe000!important;border-radius:0 0 22px 22px!important;box-shadow:0 0 12px #ffe0006b!important;padding:19px 16px!important}
+header.pksolar-top-heading small{color:#ffe75a!important;letter-spacing:0!important;text-transform:none!important;font-size:12px!important}
+header.pksolar-top-heading h1{font-size:clamp(23px,5vw,30px)!important;color:#fff!important;margin:8px 0!important}
+header.pksolar-top-heading p{color:#e1dcc8!important}
+main{max-width:760px!important;padding:14px 12px 30px!important}
+.card,.record{background:linear-gradient(145deg,rgba(30,27,10,.83),rgba(5,5,5,.95))!important;border:1px solid #ffe000b8!important;border-radius:19px!important;box-shadow:0 0 7px #ffe0003f,inset 0 1px 0 #fff4a22b!important;backdrop-filter:blur(22px)!important;-webkit-backdrop-filter:blur(22px)!important}
+h2{color:#fff!important}.num{background:linear-gradient(145deg,#fff66b,#ffc900)!important;color:#111!important;border-radius:50%!important;min-width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 12px #ffdf0077!important}
+label{color:#f7eeb8!important}
+input,textarea{background:rgba(35,35,35,.88)!important;color:white!important;border:1px solid #777!important;border-radius:11px!important}
+input::placeholder,textarea::placeholder{color:#aaa!important}
+input:focus,textarea:focus{border-color:#ffe000!important;box-shadow:0 0 0 2px #ffe00035,0 0 10px #ffe00022!important}
+button{background:linear-gradient(145deg,rgba(255,222,0,.13),rgba(12,12,9,.95))!important;border:1px solid #ffe00099!important;color:#fff!important;border-radius:13px!important;box-shadow:0 0 8px #ffe00024,inset 0 1px 0 #fff5b326!important}
+button.primary{background:linear-gradient(100deg,#ffc800,#ffed00)!important;color:#080808!important;border-color:#fff5a1!important;box-shadow:0 0 12px #ffe00088!important}
+button.secondary{background:linear-gradient(120deg,#725300,#e0b800)!important;color:#fff!important}
+button.danger,button.remove{background:linear-gradient(120deg,#5e1717,#9e2929)!important;border-color:#ff7777!important}
+.hint,.empty,.record small{color:#b8b3a0!important}.status{color:#ffe66a!important}.pill{background:#ffe0001c!important;border:1px solid #ffe00099!important;color:#ffed77!important}
+#liveCoords{background:#ffe0000d!important;border:1px solid #ffe00099!important;color:#fff!important}
+a{color:#ffe55a!important}
+#serialList li,#panelSerialList li{background:#ffffff09!important;border:1px solid #ffe00044!important;border-radius:10px!important}
+#preview,#scanner,#panelScanner{border:1px solid #ffe000aa!important;border-radius:13px!important}
+.pksolar-dashboard{display:block}
+.welcome-glass{position:relative;padding:18px;border:1px solid #ffe000;border-radius:22px;background:linear-gradient(145deg,#171407,#050505 65%);box-shadow:0 0 12px #ffe00045,inset 0 1px #fff3a333;margin-bottom:13px;overflow:hidden}
+.welcome-glass:after{content:"☀";position:absolute;right:13px;top:70px;font-size:90px;color:#ffdf001c;pointer-events:none}
+.brand-line{display:flex;align-items:center;gap:10px}.sun-icon{font-size:43px;color:#ffe000;text-shadow:0 0 14px #ffe00077}.brand-line b{font-size:27px;letter-spacing:-1px}.brand-line b span{color:white}.brand-line b em{font-style:normal;color:#ffe000}.brand-line small{display:block;font-size:12px;color:#e7e1cb;line-height:1.35}.profile-icon{margin-left:auto;border:1px solid #ffe000;border-radius:50%;width:43px;height:43px;display:grid;place-items:center;font-size:25px;background:#ffffff0c}
+.welcome-copy{margin-top:17px;position:relative;z-index:1}.welcome-copy small{font-size:10px;letter-spacing:1.5px;color:#ffe56a}.welcome-copy h2{font-size:23px;margin:5px 0 10px}.engineer-pill{display:inline-block;background:#ffe000;color:#111;padding:6px 12px;border-radius:30px;font-size:12px;font-weight:800}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:13px}.stat-card{padding:12px 9px;border:1px solid #ffe000;border-radius:17px;background:linear-gradient(145deg,#282000,#060606);box-shadow:0 0 9px #ffe00025}.stat-icon{display:block;font-size:23px;color:#ffe000;margin-bottom:5px}.stat-card small{display:block;color:#e6dfc6;font-size:10px;line-height:1.25;min-height:25px}.stat-card strong{display:block;font-size:24px;color:white;margin-top:3px}.blue-stat{border-color:#28c9ff;box-shadow:0 0 10px #00bfff26}.blue-stat .stat-icon{color:#2fcaff}.purple-stat{border-color:#bd62ff}.purple-stat .stat-icon{color:#d19aff}
+.quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:13px 0}.quick-grid button{min-height:105px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding:10px 5px;border-radius:17px!important;background:linear-gradient(145deg,#282000,#050505 75%)!important;box-shadow:0 0 10px #ffe00027!important}.quick-grid button span{font-size:30px;color:#ffe000;line-height:1.1}.quick-grid button b{font-size:12px;text-align:center}
+.portal-glass,.made-glass{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #ffe000a6;border-radius:18px;background:linear-gradient(120deg,#282000,#070707);box-shadow:0 0 9px #ffe00021;margin-top:11px}.portal-sun{font-size:38px;color:#ffe000}.portal-glass b,.made-glass b{font-size:15px}.portal-glass p,.made-glass p{margin:3px 0;font-size:12px}.portal-glass small,.made-glass small{font-size:10px;color:#c9c2a7}.made-avatar{width:52px;height:52px;border-radius:50%;border:2px solid #ffe000;display:grid;place-items:center;background:#171300;color:#ffe000;font-weight:900;flex-shrink:0}.made-glass a{font-size:12px}.whatsapp-mark{margin-left:auto;background:#00bf63;color:#fff;border-radius:50%;width:45px;height:45px;display:grid;place-items:center;font-size:23px;flex-shrink:0}
+#entryForm,#savedRecordsCard,.pksolar-company-info{display:none}
+body[data-tab="customers"] #entryForm{display:block}
+body[data-tab="records"] #savedRecordsCard{display:block}
+body[data-tab="settings"] .pksolar-company-info{display:block}
+body[data-tab="home"] #pksolarDashboard{display:block}
+body[data-tab="customers"] #pksolarDashboard,body[data-tab="records"] #pksolarDashboard,body[data-tab="settings"] #pksolarDashboard{display:none}
+body[data-tab="home"] #entryForm,body[data-tab="home"] #savedRecordsCard,body[data-tab="home"] .pksolar-company-info{display:none}
+.pksolar-bottom-nav{position:fixed;z-index:99;left:10px;right:10px;bottom:8px;max-width:740px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px;border:1px solid #ffe000;border-radius:19px;background:rgba(8,8,8,.94);box-shadow:0 0 15px #ffe00038,0 8px 30px #0009;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.pksolar-bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;padding:7px 3px;color:#b7b7b7!important;font-size:10px;border-radius:12px!important}
+.pksolar-bottom-nav button span{font-size:21px;line-height:1.2}.pksolar-bottom-nav button.active{background:linear-gradient(145deg,#ffe000,#cda600)!important;color:#080808!important;box-shadow:0 0 12px #ffe00044!important}
+@media(max-width:420px){.stats-grid{gap:6px}.stat-card{padding:10px 6px}.stat-card strong{font-size:21px}.stat-card small{font-size:9px}.quick-grid button{min-height:93px}.brand-line b{font-size:25px}.welcome-copy h2{font-size:21px}}
+</style>
+
+
+<style id="pksolar-professional-polish">
+/* Refined professional black-and-gold footer and mobile navigation */
+.portal-glass,.made-glass{
+  position:relative;display:flex;align-items:center;gap:16px;
+  padding:20px 19px;margin-top:14px;border:1px solid rgba(230,196,54,.52);
+  border-radius:22px;background:linear-gradient(112deg,rgba(35,29,8,.96),rgba(12,12,10,.98) 62%,rgba(20,17,8,.98));
+  box-shadow:0 8px 25px rgba(0,0,0,.34),0 0 0 1px rgba(255,218,72,.05),inset 0 1px rgba(255,255,255,.06);
+}
+.portal-glass{min-height:112px}
+.portal-sun{flex:0 0 58px;width:58px;height:58px;display:grid;place-items:center;border-radius:17px;
+  background:linear-gradient(145deg,#ffe56b,#e9b900);color:#171300;font-size:34px;
+  box-shadow:0 5px 15px rgba(236,190,0,.18)}
+.portal-glass b{display:block;font-size:18px;letter-spacing:-.35px;color:#fff}
+.portal-glass p{font-size:14px;color:#e9e2cc;margin:4px 0 9px}
+.portal-glass small{font-size:11px;color:#bdb59b;letter-spacing:.15px}
+.made-glass{padding:19px;min-height:116px}
+.made-avatar{width:58px;height:58px;flex:0 0 58px;border:1.5px solid #f1ce30;border-radius:18px;
+  background:linear-gradient(145deg,#26200b,#0b0b09);color:#ffdf45;font-size:17px;letter-spacing:.4px;
+  box-shadow:inset 0 1px rgba(255,255,255,.08);display:grid;place-items:center}
+.made-glass>div:nth-child(2){min-width:0;flex:1}
+.made-glass small{display:block;color:#b9b19a;font-size:11px;margin-bottom:3px}
+.made-glass b{display:block;color:#fff;font-size:16px;line-height:1.35;letter-spacing:-.2px}
+.made-glass p{font-size:12px;color:#d8d0b8;line-height:1.5;margin:5px 0}
+.made-glass a{color:#f4d84c!important;font-size:13px;font-weight:650;text-decoration:none;white-space:nowrap}
+.made-glass a:hover{text-decoration:underline}
+.whatsapp-mark{width:46px;height:46px;flex:0 0 46px;border-radius:15px;background:#13b86b;color:#fff;
+  display:grid;place-items:center;font-size:22px;box-shadow:0 5px 14px rgba(19,184,107,.2)}
+.pksolar-bottom-nav{
+  left: max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));
+  bottom:max(10px,env(safe-area-inset-bottom));padding:7px;gap:5px;
+  border:1px solid rgba(229,196,53,.58);border-radius:22px;
+  background:rgba(8,8,7,.94);box-shadow:0 10px 34px rgba(0,0,0,.58),0 0 16px rgba(255,218,0,.10);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)
+}
+.pksolar-bottom-nav button{
+  min-height:64px;justify-content:center;gap:5px;border-radius:15px!important;
+  font-size:11px;font-weight:650;letter-spacing:.1px;color:#aaa99f!important;
+  transition:background .18s ease,color .18s ease,box-shadow .18s ease
+}
+.pksolar-bottom-nav button span{font-size:22px}
+.pksolar-bottom-nav button.active{
+  background:linear-gradient(145deg,#ffe66a,#e7bd00)!important;color:#161300!important;
+  box-shadow:0 4px 13px rgba(237,193,0,.20),inset 0 1px rgba(255,255,255,.48)!important
+}
+.pksolar-bottom-nav button:focus-visible{outline:2px solid #ffe66a;outline-offset:2px}
+@media(max-width:420px){
+ .portal-glass,.made-glass{padding:15px;gap:11px;border-radius:18px}
+ .portal-sun{width:48px;height:48px;flex-basis:48px;font-size:29px;border-radius:14px}
+ .portal-glass b{font-size:16px}.portal-glass p{font-size:12px}.portal-glass small{font-size:10px}
+ .made-avatar{width:48px;height:48px;flex-basis:48px;border-radius:15px}
+ .made-glass b{font-size:14px}.made-glass p{font-size:11px}.made-glass a{font-size:12px}
+ .whatsapp-mark{width:40px;height:40px;flex-basis:40px;border-radius:13px}
+ .pksolar-bottom-nav{left:8px;right:8px;padding:6px;border-radius:18px}
+ .pksolar-bottom-nav button{min-height:59px;font-size:10px}
+}
+</style>
+
+
+<style id="pksolar-customer-share-style">
+.customer-share-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;margin:0 0 13px;border:1px solid rgba(255,224,0,.6);border-radius:16px;background:linear-gradient(120deg,rgba(35,29,8,.9),rgba(8,8,7,.96));box-shadow:0 0 10px rgba(255,224,0,.08),inset 0 1px rgba(255,255,255,.05)}
+.customer-share-row strong{display:block;color:#fff;font-size:14px}.customer-share-row small{display:block;color:#bcb59c;font-size:11px;margin-top:4px;line-height:1.4}
+.customer-share-row .customer-share-button{flex:0 0 auto;padding:10px 14px;border-radius:12px!important;background:linear-gradient(120deg,#ffe96a,#e4b900)!important;color:#171300!important;border:1px solid #fff0a0!important;font-weight:800;box-shadow:0 0 12px #ffe00030!important}
+.customer-share-button span{font-size:16px;margin-right:5px}
+@media(max-width:360px){.customer-share-row{padding:11px}.customer-share-row strong{font-size:12px}.customer-share-row small{font-size:10px}.customer-share-row .customer-share-button{padding:9px 10px}}
+</style>
+
+
+<style id="pksolar-a4-print-layout">
+@page{size:A4 portrait;margin:14mm}
+@media print{
+  html,body{background:#fff!important;color:#111!important;padding:0!important;margin:0!important;font-family:Arial,Helvetica,sans-serif!important;font-size:10.5pt!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  header{background:#fff!important;color:#111!important;border:1px solid #8c7200!important;border-radius:0!important;box-shadow:none!important;padding:8mm!important;margin:0 0 6mm!important}
+  header small,header h1,header p{color:#111!important;text-shadow:none!important}
+  .pksolar-bottom-nav,button,.actions,.customer-share-row,.quick-grid,.profile-icon{display:none!important}
+  main{max-width:none!important;width:100%!important;margin:0!important;padding:0!important}
+  #pksolarDashboard{display:block!important;break-after:page;page-break-after:always}
+  #entryForm{display:block!important;margin:0!important;padding:0!important}
+  #entryForm>.card{display:block!important;visibility:visible!important;break-before:page;page-break-before:always;break-inside:avoid-page;page-break-inside:avoid;background:#fff!important;color:#111!important;border:1px solid #b39a2e!important;border-radius:5mm!important;box-shadow:none!important;padding:8mm!important;margin:0!important}
+  #entryForm>.card:first-of-type{break-before:page;page-break-before:always}
+  #entryForm h2,#savedRecordsCard h2,.pksolar-company-info h2{color:#111!important;font-size:15pt!important;border-bottom:1px solid #d5bd58;padding-bottom:3mm}
+  #entryForm label{color:#222!important;font-weight:bold!important}
+  #entryForm input,#entryForm textarea{background:#fff!important;color:#111!important;border:1px solid #999!important;box-shadow:none!important;border-radius:2mm!important;padding:2.5mm!important;min-height:8mm!important}
+  #entryForm input::placeholder,#entryForm textarea::placeholder{color:#666!important}
+  #entryForm .hint,#entryForm .status{color:#333!important}
+  #entryForm .num,#savedRecordsCard .num,.pksolar-company-info .num{background:#f6e7a0!important;color:#111!important;box-shadow:none!important;border:1px solid #b39a2e!important}
+  #savedRecordsCard{display:block!important;break-before:page;page-break-before:always;background:#fff!important;color:#111!important;border:1px solid #b39a2e!important;border-radius:5mm!important;box-shadow:none!important;padding:8mm!important;margin:0!important}
+  #records .record{break-inside:avoid-page;page-break-inside:avoid;background:#fff!important;color:#111!important;border:1px solid #aaa!important;box-shadow:none!important;border-radius:2mm!important;margin:0 0 4mm!important;padding:4mm!important}
+  #records .record strong,#records .record p,#records .record b{color:#111!important}
+  #records .record small,#records .empty{color:#333!important}
+  #records [id^="detail-"]{color:#111!important}
+  .pksolar-company-info{display:block!important;break-before:page;page-break-before:always;background:#fff!important;color:#111!important;border:1px solid #b39a2e!important;border-radius:5mm!important;box-shadow:none!important;padding:8mm!important;margin:0!important}
+  .pksolar-company-info p,.pksolar-company-info strong,.pksolar-info-label{color:#111!important}
+  .pksolar-company-info a{color:#111!important;text-decoration:none!important}
+  .portal-glass,.made-glass{background:#fff!important;color:#111!important;border:1px solid #b39a2e!important;box-shadow:none!important;break-inside:avoid}
+  .portal-glass b,.portal-glass p,.portal-glass small,.made-glass b,.made-glass p,.made-glass small,.made-glass a{color:#111!important}
+  .portal-sun,.made-avatar{background:#f6e7a0!important;color:#111!important;box-shadow:none!important}
+  #preview{max-width:100%!important;max-height:65mm!important;object-fit:contain!important}
+  a{color:#111!important;text-decoration:none!important}
+}
+</style>
+
+</head>
+<body>
+<header class="pksolar-top-heading">
+  <small>PM Surya Ghar • Rooftop Solar Installation Portal</small>
+  <h1>☀ PKSolar Installation Register</h1>
+  <p>Customer details, live GPS, site photo, inverter SN and solar plate SN in one combined record.</p>
+</header>
+<main>
+
+<section id="pksolarDashboard" class="pksolar-dashboard">
+  <div class="welcome-glass">
+    <div class="brand-line"><span class="sun-icon">☀</span><div><b><span>PK</span><em>Solar</em></b><small>PM Surya Ghar<br>Rooftop Solar Installation Portal</small></div><span class="profile-icon">♙</span></div>
+    <div class="welcome-copy"><small>WELCOME BACK</small><h2>Chaitanya Kirange ❤️</h2><span class="engineer-pill">● Field Engineer</span></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-icon">♟</span><small>Total Customers</small><strong id="dashCustomers">0</strong></div>
+    <div class="stat-card blue-stat"><span class="stat-icon">▣</span><small>Inverters</small><strong id="dashInverters">0</strong></div>
+    <div class="stat-card"><span class="stat-icon">▦</span><small>Solar Plates</small><strong id="dashPlates">0</strong></div>
+    <div class="stat-card purple-stat"><span class="stat-icon">◷</span><small>Pending</small><strong id="dashPending">0</strong></div>
+  </div>
+  <div class="quick-grid">
+    <button type="button" data-tab="customers"><span>♟＋</span><b>New Customer</b></button>
+    <button type="button" data-tab="customers"><span>▦</span><b>Scan Inverter</b></button>
+    <button type="button" data-tab="customers" data-scroll="panelSerialInput"><span>▤</span><b>Scan Solar Plate</b></button>
+    <button type="button" data-tab="customers" data-scroll="photoInput"><span>▣</span><b>GPS Photo</b></button>
+    <button type="button" data-tab="records"><span>▤</span><b>Saved Records</b></button>
+    <button type="button" id="dashShare"><span>↗</span><b>Share App</b></button>
+  </div>
+  <div class="portal-glass"><span class="portal-sun">☀</span><div><b>PM Surya Ghar</b><p>Rooftop Solar Installation Portal</p><small>Clean Energy · Bright Future · For a Greener India 🇮🇳</small></div></div>
+  <div class="made-glass"><div class="made-avatar">PK</div><div><small>Made with</small><b>Chaitanya Kirange ❤️</b><p>PKSolar · Owner: Prashant Kirange</p><a href="tel:9764168664">9764168664</a> · <a href="tel:9518583128">9518583128</a></div><span class="whatsapp-mark">☎</span></div>
+</section>
+
+<form id="entryForm">
+<div class="customer-share-row">
+  <div><strong>Customer Installation</strong><small>Share the PKSolar portal with your team</small></div>
+  <button type="button" id="customerShareButton" class="customer-share-button"><span aria-hidden="true">↗</span> Share</button>
+</div>
+<section class="card">
+<h2><span class="num">01</span> Customer details</h2>
+<label for="customer">Customer full name *</label><input id="customer" required autocomplete="name" placeholder="Enter customer name">
+<div class="grid"><div><label for="phone">Mobile number</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="Customer phone"></div><div><label for="date">Installation date *</label><input id="date" type="date" required></div></div>
+<label for="address">Installation address *</label><textarea id="address" required placeholder="House, street, village/city, PIN code"></textarea>
+<div class="actions"><button class="secondary" type="button" id="gpsBtn">⌖ Get GPS location</button><button class="outline" type="button" id="liveGpsBtn">▶ Start live location</button><button class="outline" type="button" id="stopGpsBtn" style="display:none">■ Stop live location</button></div>
+<div id="gpsStatus" class="status">GPS not captured yet. Allow location permission, enable Location on your phone, then tap Get GPS location.</div>
+<div class="hint">If GPS does not work when this file is opened directly from Downloads, the browser may block location access to local files. Open the app from a secure HTTPS website or use the Google Maps fallback below.</div>
+<div class="actions"><button class="outline" type="button" id="openMapsFallback">Open Google Maps to check location</button></div>
+<div id="liveCoords" style="display:none;background:#edf7f0;border-radius:10px;padding:11px;margin-top:10px;font-size:13px;line-height:1.6"><b>Live GPS</b><br><span id="liveLatLon">Waiting for location…</span><br><span id="liveAccuracy"></span><br><a id="mapsLink" href="#" target="_blank" rel="noopener">Open current location in Google Maps</a></div>
+<input id="lat" type="hidden"><input id="lon" type="hidden"><input id="accuracy" type="hidden">
+</section>
+<section class="card">
+<h2><span class="num">02</span> GPS photo / site proof</h2>
+<label for="photo">Take a photo or upload site photo *</label>
+<input id="photo" type="file" accept="image/*" capture="environment" required>
+<img id="preview" alt="Selected site photo preview">
+<div class="actions"><button class="secondary" type="button" id="captureGpsPhoto">📷 Capture GPS photo</button></div>
+<p class="hint">Allow camera and location permissions when asked. “Capture GPS photo” opens your phone camera; the photo is saved with the GPS coordinates available at capture time. This browser version records the GPS beside the photo but does not burn a map/address stamp into the image itself. For automatic live GPS, keep this page open and location permission enabled.</p>
+</section>
+<section class="card">
+<h2><span class="num">03</span> Inverter serial numbers</h2>
+<label for="serialInput">SN / inverter serial number *</label>
+<div class="serialrow"><input id="serialInput" placeholder="Scan barcode or type serial no." autocomplete="off"><button class="secondary" type="button" id="addSerial">＋ Add</button></div>
+<div class="actions"><button class="outline" type="button" id="scanBtn">▦ Scan barcode</button><button class="outline" type="button" id="stopScan" style="display:none">Stop scanner</button></div>
+<video id="scanner" playsinline></video>
+<p class="hint">Use the deployed HTTPS website in Chrome. When prompted, allow Camera permission. If the scanner does not start, check the lock/site-settings icon beside the website address and set Camera to Allow, then reload. You can always type the serial number and tap Add.</p>
+<ul id="serialList"></ul><div id="scanStatus" class="status"></div>
+</section>
+<section class="card">
+<h2><span class="num">04</span> Solar plate / panel serial numbers</h2>
+<label for="panelSerialInput">Solar plate serial number</label>
+<div class="serialrow"><input id="panelSerialInput" placeholder="Scan barcode or type plate serial no." autocomplete="off"><button class="secondary" type="button" id="addPanelSerial">＋ Add</button></div>
+<div class="actions"><button class="outline" type="button" id="scanPanelBtn">▦ Scan plate barcode</button><button class="outline" type="button" id="stopPanelScan" style="display:none">Stop scanner</button></div>
+<video id="panelScanner" playsinline style="display:none;width:100%;border-radius:12px;margin-top:10px;background:#111"></video>
+<p class="hint">Use the deployed HTTPS website in Chrome. Allow Camera permission in the browser. If the scanner does not start, open site settings for this website, set Camera to Allow, and reload. Manual entry is always available.</p>
+<ul id="panelSerialList"></ul><div id="panelScanStatus" class="status"></div>
+</section>
+<section class="card">
+<h2><span class="num">05</span> Submit combined record</h2>
+<label for="notes">Remarks (optional)</label><textarea id="notes" placeholder="Installation notes, model, warranty, etc."></textarea>
+<button class="primary" type="submit">✓ Submit & save customer + all serial numbers</button>
+<p class="hint">Records are stored on this device/browser. Export a backup regularly; clearing browser data can erase locally saved records.</p>
+<div id="submitStatus" class="status"></div>
+</section>
+</form>
+<section class="card" id="savedRecordsCard">
+<div class="records-head"><h2 style="margin:0"><span class="num">✓</span> Saved records</h2><span class="pill" id="recordCount">0 records</span></div>
+<div class="actions"><button class="primary" type="button" id="printA4Btn">⎙ Print all sections (A4)</button><button class="secondary" id="exportBtn" type="button">Export backup (JSON)</button><button class="outline" id="csvBtn" type="button">Export CSV</button></div>
+<div id="records"><p class="empty">No records saved yet.</p></div>
+<div class="actions"><button class="danger" id="clearBtn" type="button">Delete all local records</button></div>
+</section>
+
+<section class="card pksolar-company-info" aria-label="PKSolar company information">
+  <h2><span class="num">☀</span> PKSolar • Company Information</h2>
+  <p><strong>Made with Chaitanya Kirange ❤️</strong></p>
+  <p><strong>PKSolar</strong></p>
+  <p><span class="pksolar-info-label">Owner:</span> Prashant Kirange</p>
+  <p><span class="pksolar-info-label">Office address:</span> PKSolar, Sahakar Nagar, Shree Dairy, Gangai Niwas, Bhusawal, Jalgaon, Maharashtra – 425201</p>
+  <p><span class="pksolar-info-label">Contact:</span>
+    <a href="tel:9764168664">9764168664</a> /
+    <a href="tel:9518583128">9518583128</a>
+  </p>
+</section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let serials=[], panelSerials=[], photoData="", stream=null, scanLoop=null, panelStream=null, panelScanLoop=null, gpsWatchId=null, latestPosition=null;
+const STORAGE_KEY="solarInverterRegister_v1";
+function getRecords(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch{return []}}
+function setRecords(rows){localStorage.setItem(STORAGE_KEY,JSON.stringify(rows));renderRecords()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("date").value=new Date().toISOString().slice(0,10);
+function renderSerials(){ $("serialList").innerHTML=serials.map((s,i)=>`<li><span>${i+1}. ${esc(s)}</span><button type="button" class="remove" data-remove="${i}">Remove</button></li>`).join("");}
+$("serialList").addEventListener("click",e=>{let b=e.target.closest("[data-remove]");if(b){serials.splice(Number(b.dataset.remove),1);renderSerials()}})
+function renderPanelSerials(){ $("panelSerialList").innerHTML=panelSerials.map((s,i)=>`<li><span>${i+1}. ${esc(s)}</span><button type="button" class="remove" data-panel-remove="${i}">Remove</button></li>`).join("");}
+$("panelSerialList").addEventListener("click",e=>{let b=e.target.closest("[data-panel-remove]");if(b){panelSerials.splice(Number(b.dataset.panelRemove),1);renderPanelSerials()}})
+function addPanelSerial(){let s=$("panelSerialInput").value.trim();if(!s){$("panelScanStatus").textContent="Enter or scan a solar plate serial number first.";return}if(panelSerials.includes(s)){$("panelScanStatus").textContent="That plate serial number is already added.";return}panelSerials.push(s);$("panelSerialInput").value="";$("panelScanStatus").textContent="Solar plate serial number added.";renderPanelSerials()}
+$("addPanelSerial").onclick=addPanelSerial;$("panelSerialInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addPanelSerial()}})
+function addSerial(){let s=$("serialInput").value.trim();if(!s){$("scanStatus").textContent="Enter or scan a serial number first.";return}if(serials.includes(s)){$("scanStatus").textContent="That serial number is already added.";return}serials.push(s);$("serialInput").value="";$("scanStatus").textContent="Serial number added.";renderSerials()}
+$("addSerial").onclick=addSerial;$("serialInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addSerial()}})
+$("photo").addEventListener("change",e=>{const f=e.target.files[0];if(!f){photoData="";return}const r=new FileReader();r.onload=()=>{photoData=r.result;$("preview").src=photoData;$("preview").style.display="block"};r.readAsDataURL(f)})
+function updateGps(p){latestPosition=p;const lat=p.coords.latitude,lon=p.coords.longitude,acc=p.coords.accuracy;$("lat").value=lat;$("lon").value=lon;$("accuracy").value=acc;$("gpsStatus").textContent=`GPS captured/updated: ${lat.toFixed(6)}, ${lon.toFixed(6)} (±${Math.round(acc)} m) • ${new Date(p.timestamp).toLocaleTimeString()}`;$("liveCoords").style.display="block";$("liveLatLon").textContent=`Latitude: ${lat.toFixed(6)} • Longitude: ${lon.toFixed(6)}`;$("liveAccuracy").textContent=`Accuracy: about ${Math.round(acc)} metres • Updated: ${new Date(p.timestamp).toLocaleTimeString()}`;$("mapsLink").href=`https://maps.google.com/?q=${lat},${lon}`;$("mapsLink").textContent="Open current location in Google Maps"}
+function gpsError(e){let reason="";if(e.code===1)reason="Permission denied. In your browser site settings, allow Location, and make sure phone Location is turned on.";else if(e.code===2)reason="Your device could not determine location. Turn on GPS/Location, move outdoors or near a window, and try again.";else if(e.code===3)reason="GPS request timed out. Check phone Location and try again outdoors.";else reason=e.message||"Unknown location error."; $("gpsStatus").textContent="GPS unavailable: "+reason+" If this HTML was opened directly from Downloads, use an HTTPS-hosted version because some browsers block GPS for local files."} 
+$("openMapsFallback").onclick=()=>{window.open("https://www.google.com/maps/", "_blank", "noopener")};
+$("gpsBtn").onclick=()=>{if(!window.isSecureContext && location.protocol!=="file:"){$("gpsStatus").textContent="This page is not in a secure context. Open the app using HTTPS, then allow Location permission.";return}if(!navigator.geolocation){$("gpsStatus").textContent="This browser does not provide GPS. Open the app in Chrome or another supported browser and allow Location permission.";return}$("gpsStatus").textContent="Getting current GPS location…";navigator.geolocation.getCurrentPosition(updateGps,gpsError,{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
+$("liveGpsBtn").onclick=()=>{if(!navigator.geolocation){$("gpsStatus").textContent="This browser does not provide GPS. Open the app in Chrome or another supported browser and allow Location permission.";return}if(gpsWatchId!==null)return;$("gpsStatus").textContent="Starting live GPS updates…";gpsWatchId=navigator.geolocation.watchPosition(updateGps,gpsError,{enableHighAccuracy:true,timeout:20000,maximumAge:1000});$("liveGpsBtn").style.display="none";$("stopGpsBtn").style.display="inline-block";$("liveCoords").style.display="block"}
+$("stopGpsBtn").onclick=()=>{if(gpsWatchId!==null)navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;$("liveGpsBtn").style.display="inline-block";$("stopGpsBtn").style.display="none";$("gpsStatus").textContent="Live GPS stopped. Last captured coordinates remain saved in this form."}
+$("captureGpsPhoto").onclick=()=>{if(!$("lat").value||!$("lon").value){if(!navigator.geolocation){$("gpsStatus").textContent="GPS is not supported by this browser.";return}$("gpsStatus").textContent="Getting GPS before opening camera…";navigator.geolocation.getCurrentPosition(p=>{updateGps(p);$("photo").click()},e=>{gpsError(e);if(confirm("GPS could not be obtained. Open camera without GPS?"))$("photo").click()},{enableHighAccuracy:true,timeout:20000,maximumAge:0})}else{$("photo").click()}}
+async function stopScanner(){if(scanLoop)cancelAnimationFrame(scanLoop);scanLoop=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$("scanner").srcObject=null;$("scanner").style.display="none";$("stopScan").style.display="none";$("scanBtn").style.display="inline-block"}
+$("stopScan").onclick=stopScanner;
+async function stopPanelScanner(){if(panelScanLoop)cancelAnimationFrame(panelScanLoop);panelScanLoop=null;if(panelStream){panelStream.getTracks().forEach(t=>t.stop());panelStream=null}$("panelScanner").srcObject=null;$("panelScanner").style.display="none";$("stopPanelScan").style.display="none";$("scanPanelBtn").style.display="inline-block"}
+$("stopPanelScan").onclick=stopPanelScanner;
+$("scanPanelBtn").onclick=async()=>{if(!window.isSecureContext){$("panelScanStatus").textContent="Camera blocked: open the deployed HTTPS Vercel website, not a local HTML file.";return}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("panelScanStatus").textContent="This browser does not provide camera access. Open this HTTPS site in Chrome and allow Camera permission.";return}if(!("BarcodeDetector" in window)){$("panelScanStatus").textContent="This browser does not support automatic barcode detection. Try updated Chrome; otherwise type the plate serial number manually and tap Add.";return}
+try{const detector=new BarcodeDetector({formats:["code_128","code_39","ean_13","ean_8","qr_code","data_matrix","upc_a","upc_e"]});panelStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});$("panelScanner").srcObject=panelStream;$("panelScanner").style.display="block";$("stopPanelScan").style.display="inline-block";$("scanPanelBtn").style.display="none";await $("panelScanner").play();$("panelScanStatus").textContent="Point the camera at the solar plate barcode…";
+const tick=async()=>{if(!panelStream)return;try{const codes=await detector.detect($("panelScanner"));if(codes.length&&codes[0].rawValue){$("panelSerialInput").value=codes[0].rawValue;$("panelScanStatus").textContent="Barcode read. Tap Add to include it.";await stopPanelScanner();return}}catch(e){}panelScanLoop=requestAnimationFrame(tick)};tick()
+}catch(e){let m=e.name==="NotAllowedError"?"Camera permission was denied. Allow Camera in Chrome site settings and reload.":e.name==="NotFoundError"?"No camera was found on this device.":e.name==="NotReadableError"?"Camera is busy in another app. Close other camera apps and retry.":e.name==="OverconstrainedError"?"Rear camera is unavailable; retry after checking device camera.":"Camera error: "+(e.message||e.name);$("panelScanStatus").textContent=m+" You can enter the plate serial number manually."}};
+$("scanBtn").onclick=async()=>{if(!window.isSecureContext){$("scanStatus").textContent="Camera blocked: open the deployed HTTPS Vercel website, not a local HTML file.";return}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("scanStatus").textContent="This browser does not provide camera access. Open this HTTPS site in Chrome and allow Camera permission.";return}if(!("BarcodeDetector" in window)){$("scanStatus").textContent="This browser does not support automatic barcode detection. Try updated Chrome; otherwise type the inverter serial number manually and tap Add.";return}
+try{const detector=new BarcodeDetector({formats:["code_128","code_39","ean_13","ean_8","qr_code","data_matrix","upc_a","upc_e"]});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});$("scanner").srcObject=stream;$("scanner").style.display="block";$("stopScan").style.display="inline-block";$("scanBtn").style.display="none";await $("scanner").play();$("scanStatus").textContent="Point the camera at the inverter barcode…";
+const tick=async()=>{if(!stream)return;try{const codes=await detector.detect($("scanner"));if(codes.length&&codes[0].rawValue){$("serialInput").value=codes[0].rawValue;$("scanStatus").textContent="Barcode read. Tap Add to include it.";await stopScanner();return}}catch(e){}scanLoop=requestAnimationFrame(tick)};tick()
+}catch(e){let m=e.name==="NotAllowedError"?"Camera permission was denied. Allow Camera in Chrome site settings and reload.":e.name==="NotFoundError"?"No camera was found on this device.":e.name==="NotReadableError"?"Camera is busy in another app. Close other camera apps and retry.":e.name==="OverconstrainedError"?"Rear camera is unavailable; retry after checking device camera.":"Camera error: "+(e.message||e.name);$("scanStatus").textContent=m+" You can enter the inverter serial number manually."}}
+$("entryForm").addEventListener("submit",e=>{e.preventDefault();if(!photoData){$("submitStatus").textContent="Please take or upload the site photo.";return}if(serials.length===0){$("submitStatus").textContent="Please add at least one inverter serial number.";return}if(panelSerials.length===0){if(!confirm("No solar plate serial numbers have been added. Submit without plate serial numbers?"))return}if(!$("lat").value||!$("lon").value){if(!confirm("GPS has not been captured. Save this record without GPS coordinates?"))return}
+const rec={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),customer:$("customer").value.trim(),phone:$("phone").value.trim(),date:$("date").value,address:$("address").value.trim(),gps:$("lat").value?{latitude:Number($("lat").value),longitude:Number($("lon").value),accuracy_m:Number($("accuracy").value)}:null,photo:photoData,serialNumbers:[...serials],panelSerialNumbers:[...panelSerials],notes:$("notes").value.trim(),savedAt:new Date().toISOString()};
+try{const rows=getRecords();rows.unshift(rec);setRecords(rows);$("submitStatus").textContent="Saved successfully: customer, GPS/photo and "+serials.length+" serial number(s) are combined in one record."; $("entryForm").reset();$("date").value=new Date().toISOString().slice(0,10);serials=[];panelSerials=[];photoData="";$("preview").style.display="none";$("lat").value=$("lon").value=$("accuracy").value="";$("gpsStatus").textContent="GPS not captured yet.";renderSerials();renderPanelSerials();window.scrollTo({top:0,behavior:"smooth"})}catch(err){$("submitStatus").textContent="Could not save. Photo may be too large for browser storage. Try a smaller photo or export/delete older records."}});
+function updateDashboardStats(){const rows=getRecords();const inv=rows.reduce((n,r)=>n+(r.serialNumbers||[]).length,0);const plates=rows.reduce((n,r)=>n+(r.panelSerialNumbers||[]).length,0);if($("dashCustomers"))$("dashCustomers").textContent=rows.length;if($("dashInverters"))$("dashInverters").textContent=inv;if($("dashPlates"))$("dashPlates").textContent=plates;if($("dashPending"))$("dashPending").textContent=rows.filter(r=>!r.gps||!r.photo).length}
+function renderRecords(){const rows=getRecords();updateDashboardStats();$("recordCount").textContent=`${rows.length} record${rows.length===1?"":"s"}`;if(!rows.length){$("records").innerHTML='<p class="empty">No records saved yet.</p>';return}$("records").innerHTML=rows.map(r=>`<div class="record"><strong>${esc(r.customer)}</strong><small>${esc(r.date)} • ${r.serialNumbers.length} inverter(s) • ${(r.panelSerialNumbers||[]).length} plate(s) • ${r.gps?"GPS saved":"No GPS"}</small><p style="margin:7px 0;font-size:13px"><b>Inverter SN:</b> ${r.serialNumbers.map(esc).join(", ")}<br><b>Solar plate SN:</b> ${(r.panelSerialNumbers||[]).map(esc).join(", ")||"—"}</p><button type="button" class="outline" data-view="${esc(r.id)}">View details</button> <button type="button" class="remove" data-delete="${esc(r.id)}">Delete</button><div id="detail-${esc(r.id)}"></div></div>`).join("")}
+$("records").addEventListener("click",e=>{const v=e.target.closest("[data-view]"),d=e.target.closest("[data-delete]");if(d){if(confirm("Delete this saved record from this device?"))setRecords(getRecords().filter(r=>r.id!==d.dataset.delete))}if(v){const r=getRecords().find(x=>x.id===v.dataset.view);if(!r)return;const el=$("detail-"+r.id);el.innerHTML=`<p style="font-size:13px;overflow-wrap:anywhere"><b>Phone:</b> ${esc(r.phone||"—")}<br><b>Address:</b> ${esc(r.address)}<br><b>GPS:</b> ${r.gps?`${r.gps.latitude}, ${r.gps.longitude} (±${r.gps.accuracy_m}m)`:"Not captured"}<br><b>Solar plate serial numbers:</b> ${(r.panelSerialNumbers||[]).map(esc).join(", ")||"—"}<br><b>Remarks:</b> ${esc(r.notes||"—")}<br><b>Saved:</b> ${esc(r.savedAt)}</p>${r.gps?`<a target="_blank" rel="noopener" href="https://maps.google.com/?q=${r.gps.latitude},${r.gps.longitude}">Open GPS in Maps</a><br>`:""}<img alt="Site photo" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:8px" src="${r.photo}">`}})
+$("exportBtn").onclick=()=>download("solar-inverter-records.json",JSON.stringify(getRecords(),null,2),"application/json");
+$("csvBtn").onclick=()=>{const rows=getRecords();const cols=["customer","phone","date","address","latitude","longitude","serialNumbers","panelSerialNumbers","notes","savedAt"];const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"';const lines=[cols.join(","),...rows.map(r=>[r.customer,r.phone,r.date,r.address,r.gps?.latitude,r.gps?.longitude,r.serialNumbers.join("; "),(r.panelSerialNumbers||[]).join("; "),r.notes,r.savedAt].map(q).join(","))];download("solar-inverter-records.csv",lines.join("\r\n"),"text/csv")}
+function download(name,data,type){const blob=new Blob([data],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+$("clearBtn").onclick=()=>{if(confirm("Permanently delete ALL records stored in this browser? Export a backup first if needed.")){localStorage.removeItem(STORAGE_KEY);renderRecords()}}
+const shareMessage = () => {
+ const appUrl = window.location.href;
+ return `☀️ *PKSolar — PM Surya Ghar Rooftop Solar Installation Portal*\n\nUse this portal to record each rooftop solar installation with:\n• Customer name, mobile and address\n• Live GPS location and site photo\n• Inverter serial number(s)\n• Solar plate/panel serial number(s)\n• One combined customer submission and exportable records\n\nMade by Chaitanya Kirange ❤️\nPKSolar\nContact: 9518583128\n\nApp link: ${appUrl}`;
+};
+$("shareAppBtn").onclick=async()=>{
+ const text=shareMessage();
+ if(navigator.share){
+  try{await navigator.share({title:"PKSolar — PM Surya Ghar Installation Portal",text,url:window.location.href});$("shareStatus").textContent="Share sheet opened. Choose your company WhatsApp/group or another app."}
+  catch(e){if(e.name!=="AbortError")$("shareStatus").textContent="Sharing was not completed. Use Copy share message instead."}
+ }else{
+  try{await navigator.clipboard.writeText(text);$("shareStatus").textContent="Share message copied. Open your company group and paste it."}
+  catch(e){$("shareStatus").textContent="Copy the message using the Copy share message button, then paste it into your company group."}
+ }
+};
+$("copyShareBtn").onclick=async()=>{
+ try{await navigator.clipboard.writeText(shareMessage());$("shareStatus").textContent="Share message copied. Open your company group and paste it."}
+ catch(e){const ta=document.createElement("textarea");ta.value=shareMessage();ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();$("shareStatus").textContent=ok?"Share message copied. Open your company group and paste it.":"Copy failed. You can manually copy the app details and link."}
+};
+renderSerials();renderPanelSerials();renderRecords();
+</script>
+
+<nav class="pksolar-bottom-nav" aria-label="Main navigation">
+  <button type="button" class="active" data-tab="home"><span>⌂</span>Home</button>
+  <button type="button" data-tab="customers"><span>♟</span>Customers</button>
+  <button type="button" data-tab="records"><span>▤</span>Reports</button>
+  <button type="button" data-tab="settings"><span>⚙</span>Settings</button>
+</nav>
+<script id="pksolar-navigation">
+(function(){
+ function goTab(tab){
+   document.body.dataset.tab=tab;
+   document.querySelectorAll('.pksolar-bottom-nav [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+   window.scrollTo({top:0,behavior:'smooth'});
+ }
+ document.body.dataset.tab='home';
+ document.querySelectorAll('.pksolar-bottom-nav [data-tab], .quick-grid [data-tab]').forEach(b=>b.addEventListener('click',function(){
+   goTab(this.dataset.tab);
+   const target=this.dataset.scroll;
+   if(target)setTimeout(()=>document.getElementById(target)?.scrollIntoView({behavior:'smooth',block:'center'}),220);
+ }));
+ document.getElementById('dashShare')?.addEventListener('click',async()=>{
+   const msg='PM Surya Ghar • PKSolar Installation Register\\nMade with Chaitanya Kirange ❤️\\nOwner: Prashant Kirange\\nContact: 9764168664 / 9518583128\\n'+location.href;
+   try{if(navigator.share)await navigator.share({title:'PKSolar Installation Register',text:msg,url:location.href});else if(navigator.clipboard){await navigator.clipboard.writeText(msg);alert('App sharing details copied. Paste them into your company group.')}else prompt('Copy and share these details:',msg)}catch(e){}
+ });
+})();
+</script>
+
+
+<script id="pksolar-customer-share-handler">
+(function(){
+ const btn=document.getElementById('customerShareButton');
+ if(!btn)return;
+ btn.addEventListener('click',async function(){
+   const url=window.location.href;
+   const message='PM Surya Ghar • Rooftop Solar Installation Portal\n☀ PKSolar Installation Register\nOwner: Prashant Kirange\nContact: 9764168664 / 9518583128\n'+url;
+   try{
+     if(navigator.share){await navigator.share({title:'PKSolar Installation Register',text:message,url:url});}
+     else if(navigator.clipboard && window.isSecureContext){await navigator.clipboard.writeText(message);alert('Share details copied. Paste them into your company group.');}
+     else{window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank','noopener');}
+   }catch(e){if(e && e.name!=='AbortError'){window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank','noopener');}}
+ });
+})();
+</script>
+
+
+<script id="pksolar-a4-print-handler">
+(function(){
+ const b=document.getElementById('printA4Btn');
+ if(b)b.addEventListener('click',function(){
+   const oldTab=document.body.dataset.tab;
+   document.body.dataset.printAll='true';
+   window.print();
+   setTimeout(()=>{delete document.body.dataset.printAll;if(oldTab)document.body.dataset.tab=oldTab;},700);
+ });
+})();
+</script>
+
+
+<style id="pksolar-gps-camera-enhancement">
+.gps-address-status{font-size:12px;color:#ffe16a;margin-top:7px;line-height:1.5}
+#gpsStampedPreview{display:none;width:100%;max-height:360px;object-fit:contain;border:1px solid #e8c72e;border-radius:12px;margin-top:10px}
+</style>
+<script id="pksolar-gps-camera-enhancement-script">
+(function(){
+ const $=id=>document.getElementById(id);
+ let readableAddress='';
+ const addr=$('address'), gps=$('gpsStatus'), photo=$('photo');
+ if(addr){
+   const note=document.createElement('div');note.className='gps-address-status';note.id='gpsAddressStatus';
+   note.textContent='Tap “Get GPS location” to fill the installation address automatically. You can edit it afterward.';
+   addr.insertAdjacentElement('afterend',note);
+ }
+ async function reverseGeocode(lat,lon){
+   const status=$('gpsAddressStatus');
+   if(status)status.textContent='Finding the address from GPS…';
+   try{
+     const res=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&zoom=18&addressdetails=1',{headers:{'Accept-Language':'en'}});
+     if(!res.ok)throw new Error('Address lookup unavailable');
+     const data=await res.json();
+     readableAddress=(data&&data.display_name)||'';
+     if(readableAddress&&addr){
+       addr.value=readableAddress;
+       addr.dispatchEvent(new Event('input',{bubbles:true}));
+       if(status)status.textContent='✓ Address filled automatically from GPS. Please verify the house/site details.';
+     }else if(status)status.textContent='GPS received, but no readable address was returned. Please type the address.';
+   }catch(e){
+     if(status)status.textContent='GPS coordinates captured, but automatic address lookup failed. Check internet and enter the address manually.';
+   }
+ }
+ // Existing GPS handler stores coordinates in hidden fields; watch for successful GPS updates.
+ const latEl=$('lat'),lonEl=$('lon');
+ let previous='';
+ setInterval(()=>{
+   if(latEl&&lonEl&&latEl.value&&lonEl.value){
+     const key=latEl.value+','+lonEl.value;
+     if(key!==previous){previous=key;reverseGeocode(latEl.value,lonEl.value);}
+   }
+ },800);
+ // The camera file picker uses the rear camera on supported mobile browsers.
+ if(photo){
+   photo.setAttribute('accept','image/*');
+   photo.setAttribute('capture','environment');
+   photo.addEventListener('change',function(){
+     const original=photo.files&&photo.files[0];
+     if(!original||!original.type.startsWith('image/'))return;
+     const stampPhoto=async()=>{
+       try{
+         const objectUrl=URL.createObjectURL(original),img=new Image();
+         img.onload=()=>{
+           try{
+             const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+             const maxW=1800,scale=Math.min(1,maxW/img.naturalWidth);
+             canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);
+             ctx.drawImage(img,0,0,canvas.width,canvas.height);
+             const h=Math.max(120,Math.round(canvas.height*.19));
+             ctx.fillStyle='rgba(0,0,0,.76)';ctx.fillRect(0,canvas.height-h,canvas.width,h);
+             ctx.fillStyle='#ffdf35';ctx.fillRect(0,canvas.height-h,Math.max(5,Math.round(canvas.width*.009)),h);
+             const pad=Math.round(canvas.width*.025),font=Math.max(17,Math.round(canvas.width*.026));
+             ctx.textBaseline='top';ctx.fillStyle='#ffe36a';ctx.font='bold '+font+'px Arial';
+             ctx.fillText('☀ PM SURYA GHAR • PKSolar',pad,canvas.height-h+pad*.55);
+             ctx.fillStyle='#ffffff';ctx.font=Math.max(13,Math.round(font*.72))+'px Arial';
+             const lat=latEl&&latEl.value,lon=lonEl&&lonEl.value;
+             const lines=[
+               readableAddress||((addr&&addr.value)||'Installation site'),
+               lat&&lon?'GPS: '+Number(lat).toFixed(6)+', '+Number(lon).toFixed(6):'GPS coordinates not captured',
+               'Captured: '+new Date().toLocaleString('en-IN')
+             ];
+             const lineH=Math.max(18,Math.round(font*.95));let y=canvas.height-h+pad*.55+font+7;
+             lines.forEach(line=>{
+               let text=String(line);const maxWidth=canvas.width-pad*2;
+               while(ctx.measureText(text).width>maxWidth&&text.length>8)text=text.slice(0,-4)+'…';
+               ctx.fillText(text,pad,y);y+=lineH;
+             });
+             canvas.toBlob(blob=>{
+               URL.revokeObjectURL(objectUrl);
+               if(!blob)return;
+               const stamped=new File([blob],original.name.replace(/\.[^.]+$/,'')+'_GPS.jpg',{type:'image/jpeg',lastModified:Date.now()});
+               try{const dt=new DataTransfer();dt.items.add(stamped);photo.files=dt.files;}catch(e){}
+               const preview=$('preview');
+               if(preview){preview.src=URL.createObjectURL(blob);preview.style.display='block';}
+               let note=$('gpsPhotoStampNote');
+               if(!note){note=document.createElement('div');note.id='gpsPhotoStampNote';note.className='gps-address-status';photo.insertAdjacentElement('afterend',note);}
+               note.textContent=latEl&&latEl.value&&lonEl&&lonEl.value?'✓ GPS-stamped site photo ready. Coordinates and capture time are written on the image.':'⚠ Photo stamped with site/time, but GPS is missing. Tap Get GPS location and capture again for GPS coordinates.';
+             },'image/jpeg',.9);
+           }catch(e){URL.revokeObjectURL(objectUrl);}
+         };
+         img.onerror=()=>URL.revokeObjectURL(objectUrl);
+         img.src=objectUrl;
+       }catch(e){}
+     };
+     setTimeout(stampPhoto,150);
+   });
+ }
+ // Add explicit “use current location for address” behavior to GPS buttons as a reliable fallback.
+ ['gpsBtn','liveGpsBtn'].forEach(id=>{
+   const b=$(id);if(!b)return;
+   b.addEventListener('click',()=>{
+     if(!navigator.geolocation)return;
+     navigator.geolocation.getCurrentPosition(pos=>reverseGeocode(pos.coords.latitude,pos.coords.longitude),()=>{}, {enableHighAccuracy:true,timeout:20000,maximumAge:0});
+   });
+ });
+})();
+</script>
+
+</body></html>
